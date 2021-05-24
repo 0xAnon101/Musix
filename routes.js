@@ -1,6 +1,17 @@
 const shortId = require("shortid");
+const IPFS_CLIENT = require("ipfs-http-client");
 
-const routes = (app, db) => {
+// set up a remote node connection
+const ipfs = IPFS_CLIENT.create({
+  host: "ipfs.infura.io",
+  port: 5001,
+  protocol: "https",
+});
+
+const routes = (app, db, lms, accounts) => {
+  const userCollection = db.collection("music-users");
+  const musicCollection = db.collection("music-store");
+
   // register user
   app.post("/register", (req, res) => {
     const email = req.body.email;
@@ -39,9 +50,22 @@ const routes = (app, db) => {
   });
 
   // upload details
-  app.put("/upload", (req, res) => {
-    const { bufferData, name, title } = req.body;
-    if (buffer && title) {
+  app.put("/upload", async (req, res) => {
+    const ID = shortId.generate() + shortId.generate() + shortId.generate();
+    if (req.busboy && title) {
+      req.busboy.on(
+        "file",
+        function (fieldname, file, filename, encoding, mimetype) {
+          console.log(fieldname, file);
+        }
+      );
+      req.busboy.on(
+        "field",
+        function (key, value, keyTruncated, valueTruncated) {
+          console.log(key, value);
+        }
+      );
+      req.pipe(req.busboy);
     } else {
       res.status(400).json({ status: "Failed", reason: "wrong input" });
     }
