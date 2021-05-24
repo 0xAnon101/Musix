@@ -1,0 +1,2 @@
+# Musix
+Decentralized Music - Musix
