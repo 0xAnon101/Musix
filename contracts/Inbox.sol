@@ -27,7 +27,7 @@ contract Inbox {
 /**
   @dev sends the ipfs inbox data to blockchain
  */
-  function sendIpfsQuery(string memory _address, string memory _hashValue) public notFull(ipfsInbox[_address]) {
+  function sendIpfs(string memory _address, string memory _hashValue) public notFull(ipfsInbox[_address]) {
     ipfsInbox[_address] = _hashValue;
     emit IpfsSent(_hashValue, _address);
   }
@@ -35,7 +35,7 @@ contract Inbox {
 /**
   @dev returns the ipfs inbox hash off-chain
  */
-  function getHashValue(string memory _address) public returns(string memory) {
+  function getHash(string memory _address) public returns(string memory) {
     string memory _hashValue = ipfsInbox[_address];
     emit IpfsResponse(_hashValue);
     return _hashValue;
