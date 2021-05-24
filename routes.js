@@ -8,6 +8,11 @@ const ipfs = IPFS_CLIENT.create({
   protocol: "https",
 });
 
+const ErrorResponse = (errorData) => {
+  const { res, status, statusCode, reason } = errorData;
+  res.status(statusCode).json({ status, reason });
+};
+
 const routes = (app, db, lms, accounts) => {
   const userCollection = db.collection("music-users");
   const musicCollection = db.collection("music-store");
@@ -17,19 +22,27 @@ const routes = (app, db, lms, accounts) => {
     const email = req.body.email;
     const uniqueId = shortId.generate();
     if (email) {
-      db.collection("music").findOne({ email }, (err, result) => {
+      userCollection.findOne({ email }, (err, result) => {
         if (err) throw err;
         if (result) {
-          res
-            .status(400)
-            .json({ status: "failed", reason: "Already Registered!" });
+          ErrorResponse({
+            res,
+            status: "failed",
+            statusCode: 400,
+            reason: "Already Registered!",
+          });
         } else {
           db.collection("music").insertOne({ email });
           res.status(200).json({ status: "success", id: uniqueId });
         }
       });
     } else {
-      res.status(400).json({ status: "failed", reason: "Wrong input!" });
+      ErrorResponse({
+        res,
+        status: "failed",
+        statusCode: 400,
+        reason: "Wrong input!",
+      });
     }
   });
 
@@ -37,37 +50,85 @@ const routes = (app, db, lms, accounts) => {
   app.post("/login", (req, res) => {
     const email = req.body.email;
     if (email) {
-      db.collection("music").findOne({ email }, (err, result) => {
+      userCollection.findOne({ email }, (err, result) => {
         if (result) {
           res.status(200).json({ status: "success", id: res.id });
         } else {
-          res.status(400).json({ status: "Failed", reason: "Not recognised" });
+          ErrorResponse({
+            res,
+            status: "failed",
+            statusCode: 400,
+            reason: "Not recognised!",
+          });
         }
       });
     } else {
-      res.status(400).json({ status: "failed", reason: "Wrong input!" });
+      ErrorResponse({
+        res,
+        status: "failed",
+        statusCode: 400,
+        reason: "Wrong input!",
+      });
     }
   });
 
   // upload details
   app.put("/upload", async (req, res) => {
     const ID = shortId.generate() + shortId.generate() + shortId.generate();
-    if (req.busboy && title) {
-      req.busboy.on(
-        "file",
-        function (fieldname, file, filename, encoding, mimetype) {
-          console.log(fieldname, file);
+    let steamError = false;
+    const musicInfo = { title: "", name: "" };
+    let body = [];
+
+    if (req.busboy) {
+      req.busboy.on("file", async function (fieldname, file, filename) {
+        if (fieldname && filename) {
+          // readable stream
+          file.on("data", function (data) {
+            body.push(data);
+          });
+
+          file.on("end", async function () {
+            body = Buffer.concat(body);
+            // successfully added
+            let ipfsHash = await ipfs.add(body);
+            const response = await lms.sendIpfs(ID, ipfsHash.path, {
+              from: accounts[0],
+            });
+
+            musicCollection.insertOne({
+              ID,
+              cid: ipfsHash.path,
+              title: musicInfo.title,
+              name: musicInfo.name,
+            });
+            res.status(200).json({ status: "success", cid: ipfsHash.path, ID });
+          });
+        } else {
+          req.busboy.destroy();
+          steamError = true;
+          ErrorResponse({
+            res,
+            status: "failed",
+            statusCode: 400,
+            reason: "Sorry something happened!",
+          });
         }
-      );
-      req.busboy.on(
-        "field",
-        function (key, value, keyTruncated, valueTruncated) {
-          console.log(key, value);
+      });
+      req.busboy.on("field", function (key, value) {
+        if (key) {
+          musicInfo[key] = value;
+        } else {
+          req.busboy.destroy();
+          steamError = true;
+          ErrorResponse({
+            res,
+            status: "failed",
+            statusCode: 400,
+            reason: "Sorry something happened!",
+          });
         }
-      );
+      });
       req.pipe(req.busboy);
-    } else {
-      res.status(400).json({ status: "Failed", reason: "wrong input" });
     }
   });
 
@@ -75,7 +136,12 @@ const routes = (app, db, lms, accounts) => {
   app.get("/access/:email/:id", (req, res) => {
     if (req.params.id && req.params.email) {
     } else {
-      res.status(400).json({ status: "Failed", reason: "wrong input" });
+      ErrorResponse({
+        res,
+        status: "failed",
+        statusCode: 400,
+        reason: "Wrong input!",
+      });
     }
   });
 };
