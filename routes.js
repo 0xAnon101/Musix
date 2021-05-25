@@ -32,8 +32,8 @@ const routes = (app, db, lms, accounts) => {
             reason: "Already Registered!",
           });
         } else {
-          db.collection("music").insertOne({ email });
-          res.status(200).json({ status: "success", id: uniqueId });
+          userCollection.insertOne({ email });
+          res.status(200).json({ status: "registered", id: uniqueId });
         }
       });
     } else {
@@ -52,7 +52,7 @@ const routes = (app, db, lms, accounts) => {
     if (email) {
       userCollection.findOne({ email }, (err, result) => {
         if (result) {
-          res.status(200).json({ status: "success", id: res.id });
+          res.status(200).json({ status: "logged in", id: res.id });
         } else {
           ErrorResponse({
             res,
@@ -132,9 +132,52 @@ const routes = (app, db, lms, accounts) => {
     }
   });
 
-  // access data
-  app.get("/access/:email/:id", (req, res) => {
-    if (req.params.id && req.params.email) {
+  // fetch all the music corresponding to a user
+  app.get("/access/:email", async (req, res) => {
+    const { email } = req.params;
+    if (email) {
+      userCollection.findOne({ email }, async (err, response) => {
+        if (response) {
+          const data = await musicCollection.find().toArray();
+          res.status(200).json({ status: "success", data });
+        }
+      });
+    } else {
+      ErrorResponse({
+        res,
+        status: "failed",
+        statusCode: 400,
+        reason: "Please add correct Inputs!",
+      });
+    }
+  });
+
+  // fetch a specific music collection
+  app.get("/access/:email/:id", async (req, res) => {
+    const { id, email } = req.params;
+    if (id && email) {
+      userCollection.findOne({ email }, async (err, response) => {
+        if (response) {
+          const hashValue = await lms.getHash.call(id);
+          const data = await ipfs.get(hashValue);
+          const content = [];
+          for await (const file of data) {
+            if (!file.content) continue;
+            for await (const chunk of file.content) {
+              // bingo got the chunk!
+              content.push(chunk);
+            }
+          }
+          // console.log(content);
+        } else {
+          ErrorResponse({
+            res,
+            status: "failed",
+            statusCode: 400,
+            reason: "Wrong input!",
+          });
+        }
+      });
     } else {
       ErrorResponse({
         res,

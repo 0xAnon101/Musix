@@ -35,9 +35,8 @@ contract Inbox {
 /**
   @dev returns the ipfs inbox hash off-chain
  */
-  function getHash(string memory _address) public returns(string memory) {
+  function getHash(string memory _address) public view returns(string memory) {
     string memory _hashValue = ipfsInbox[_address];
-    emit IpfsResponse(_hashValue);
     return _hashValue;
   }
 
