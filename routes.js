@@ -1,12 +1,16 @@
 const shortId = require("shortid");
-const IPFS_CLIENT = require("ipfs-http-client");
+const IPFS_CLIENT = require("ipfs-core");
+const all = require("it-all");
+let ipfs = null;
 
-// set up a remote node connection
-const ipfs = IPFS_CLIENT.create({
-  host: "ipfs.infura.io",
-  port: 5001,
-  protocol: "https",
-});
+(async () => {
+  // set up a remote node connection
+  ipfs = await IPFS_CLIENT.create({
+    host: "ipfs.infura.io",
+    port: 5001,
+    protocol: "https",
+  });
+})();
 
 const ErrorResponse = (errorData) => {
   const { res, status, statusCode, reason } = errorData;
@@ -159,16 +163,8 @@ const routes = (app, db, lms, accounts) => {
       userCollection.findOne({ email }, async (err, response) => {
         if (response) {
           const hashValue = await lms.getHash.call(id);
-          const data = await ipfs.get(hashValue);
-          const content = [];
-          for await (const file of data) {
-            if (!file.content) continue;
-            for await (const chunk of file.content) {
-              // bingo got the chunk!
-              content.push(chunk);
-            }
-          }
-          // console.log(content);
+          const data = await all(ipfs.cat(`${hashValue}`));
+          res.status(200).json({ status: "success", data });
         } else {
           ErrorResponse({
             res,

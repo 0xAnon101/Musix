@@ -2236,10 +2236,16 @@
       "links": {},
       "address": "0x43ea37bB67FDF8971934Fc8109843078D8686198",
       "transactionHash": "0x97008012721cb1f2543376109b34d45f9ebc6ab0fc9e8230b3007ad98e0609db"
+    },
+    "1622030410455": {
+      "events": {},
+      "links": {},
+      "address": "0xc22fE68Ef71A12f5C59441bCFf90fE01DB346880",
+      "transactionHash": "0xc70d2cd5b7996c43eaa912bd47fa0cde72ff69d235211c077d705ef3aebcfdb8"
     }
   },
   "schemaVersion": "3.3.4",
-  "updatedAt": "2021-05-25T12:35:21.963Z",
+  "updatedAt": "2021-05-26T12:00:24.387Z",
   "networkType": "ethereum",
   "devdoc": {
     "details": "handles the IPFS storage functionality",
