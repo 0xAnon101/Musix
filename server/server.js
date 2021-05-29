@@ -6,7 +6,7 @@ const { MongoClient } = require("mongodb");
 const contract = require("@truffle/contract");
 const { routes } = require("./routes");
 const dicer = require("./dicer");
-const artifacts = require("./build/contracts/Inbox.json");
+const artifacts = require("../build/contracts/Inbox.json");
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));

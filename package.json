@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js",
-    "build": "node server.js",
+    "start": "nodemon server/server.js",
+    "build": "node server/server.js",
     "truffle:test": "truffle test",
     "truffle:migrate": "truffle migrate --reset"
   },
@@ -16,9 +16,7 @@
     "busboy": "^0.3.1",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
-    "ipfs-core": "^0.7.0",
     "ipfs-http-client": "^50.0.0",
-    "it-all": "^1.0.5",
     "it-to-buffer": "^2.0.0",
     "mongodb": "^3.6.8",
     "shortid": "^2.2.16",

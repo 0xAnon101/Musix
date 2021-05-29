@@ -1,6 +1,5 @@
 const shortId = require("shortid");
-const IPFS_CLIENT = require("ipfs-core");
-const all = require("it-all");
+const IPFS_CLIENT = require("ipfs-http-client");
 let ipfs = null;
 
 (async () => {
@@ -163,8 +162,7 @@ const routes = (app, db, lms, accounts) => {
       userCollection.findOne({ email }, async (err, response) => {
         if (response) {
           const hashValue = await lms.getHash.call(id);
-          const data = await all(ipfs.cat(`${hashValue}`));
-          res.status(200).json({ status: "success", data });
+          res.status(200).json({ status: "success", data: hashValue });
         } else {
           ErrorResponse({
             res,
