@@ -1,14 +1,20 @@
 const shortId = require("shortid");
 const IPFS_CLIENT = require("ipfs-http-client");
+const pinataSDK = require("@pinata/sdk");
+
 let ipfs = null;
+let pinata = null;
 
 (async () => {
-  // set up a remote node connection
+  // set up a remote node connection  to pinata endpoint
   ipfs = await IPFS_CLIENT.create({
-    host: "ipfs.infura.io",
+    host: process.env.PIN_ENDPOINT,
     port: 5001,
     protocol: "https",
   });
+
+  pinata = pinataSDK(process.env.PIN_KEY, process.env.PIN_SECRET);
+  console.log(pinata);
 })();
 
 const ErrorResponse = (errorData) => {
@@ -78,7 +84,6 @@ const routes = (app, db, lms, accounts) => {
   // upload details
   app.put("/upload", async (req, res) => {
     const ID = shortId.generate() + shortId.generate() + shortId.generate();
-    let steamError = false;
     const musicInfo = { title: "", name: "" };
     let body = [];
 
@@ -92,19 +97,33 @@ const routes = (app, db, lms, accounts) => {
 
           file.on("end", async function () {
             body = Buffer.concat(body);
-            // successfully added
+            // add file to ipfs
             let ipfsHash = await ipfs.add(body);
-            const response = await lms.sendIpfs(ID, ipfsHash.path, {
+            // save ipfs hash into smartcontract
+            await lms.sendIpfs(ID, ipfsHash.path, {
               from: accounts[0],
             });
-
+            // populate DB with the ipfs data
             musicCollection.insertOne({
               ID,
               cid: ipfsHash.path,
               title: musicInfo.title,
               name: musicInfo.name,
             });
-            res.status(200).json({ status: "success", cid: ipfsHash.path, ID });
+            // pin the hash into the pinata gateway
+            const { authenticated } = await pinata.testAuthentication();
+            if (authenticated) {
+              await pinata.pinByHash(ipfsHash.path, {
+                pinataMetadata: {
+                  name: "Musix",
+                  size: ipfsHash.size,
+                },
+              });
+
+              res
+                .status(200)
+                .json({ status: "success", cid: ipfsHash.path, ID });
+            }
           });
         } else {
           req.busboy.destroy();
