@@ -1,6 +1,7 @@
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const copyWebpackPlugin = require("copy-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const Path = require("path");
 
 const miniCssPlugin = new MiniCssExtractPlugin({
@@ -9,15 +10,18 @@ const miniCssPlugin = new MiniCssExtractPlugin({
 });
 
 const htmlPlugin = new HtmlWebPackPlugin({
-  template: "./src/index.html",
+  template: "./public/index.html",
   filename: "./index.html",
 });
+
+const cleanPlugin = new CleanWebpackPlugin();
 
 const copyPlugin = new copyWebpackPlugin({
   patterns: [
     {
       from: "src/assets",
-      to: "dist/",
+      to: "images/",
+      noErrorOnMissing: true,
     },
   ],
 });
@@ -80,6 +84,6 @@ module.exports = (env, argv) => {
         },
       ],
     },
-    plugins: [htmlPlugin, miniCssPlugin],
+    plugins: [htmlPlugin, miniCssPlugin, cleanPlugin, copyPlugin],
   };
 };
