@@ -8,6 +8,8 @@ const Path = require("path");
 const modeConfig = (env) =>
   require(`./build-utils/webpack.${env.mode}.js`)(env);
 
+const loadPresets = require("./build-utils/loadPresets");
+
 const miniCssPlugin = new MiniCssExtractPlugin({
   filename: "[name].[hash].css",
   chunkFilename: "[id].[hash].css",
@@ -27,6 +29,7 @@ const copyPlugin = new copyWebpackPlugin({
       to: "images/",
       noErrorOnMissing: true,
     },
+    "public/manifest.json",
   ],
 });
 
@@ -77,6 +80,7 @@ module.exports = (env) => {
       },
       plugins: [htmlPlugin, miniCssPlugin, cleanPlugin, copyPlugin],
     },
-    modeConfig({ mode: env.mode })
+    modeConfig({ mode: env.mode }),
+    loadPresets({ mode: env.mode, presets: env.presets })
   );
 };

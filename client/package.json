@@ -6,8 +6,9 @@
   "scripts": {
     "webpack": "webpack",
     "webpack-dev-server": "webpack-dev-server",
-    "prod": "webpack --env mode=production --mode production",
-    "dev": "webpack serve --env mode=development --mode development --hot"
+    "prod": "webpack --env mode=production --mode production  --env presets=serviceworker",
+    "dev": "webpack serve --env mode=development --mode development --hot",
+    "dev:sw": "webpack serve --env mode=development --mode development --env presets=serviceworker"
   },
   "keywords": [],
   "author": "",
