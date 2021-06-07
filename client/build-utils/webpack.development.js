@@ -20,7 +20,7 @@ module.exports = () => ({
   },
   plugins: [
     // Copy empty ServiceWorker so install doesn't blow up
-    new CopyWebpackPlugin({ patterns: ["./public/sw.js"] }),
+    new CopyWebpackPlugin({ patterns: ["./src/sw/sw.js"] }),
   ],
   devtool: "source-map",
 });

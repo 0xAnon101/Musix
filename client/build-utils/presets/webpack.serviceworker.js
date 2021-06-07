@@ -3,7 +3,8 @@ const WorkboxPlugin = require("workbox-webpack-plugin");
 module.exports = () => ({
   plugins: [
     new WorkboxPlugin.InjectManifest({
-      swSrc: "./public/sw.js",
+      swSrc: "./src/sw/sw.js",
+      swDest: "sw.js",
       exclude: [
         /\.map$/,
         /manifest$/,

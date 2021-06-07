@@ -34,7 +34,6 @@ const copyPlugin = new copyWebpackPlugin({
 });
 
 module.exports = (env) => {
-  console.log(env.mode);
   return webpackMerge(
     {
       optimization: {
