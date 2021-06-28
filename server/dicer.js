@@ -32,7 +32,6 @@ module.exports = function (options) {
 };
 
 // utility functions copied from Connect
-
 function hasBody(req) {
   var encoding = "transfer-encoding" in req.headers,
     length =

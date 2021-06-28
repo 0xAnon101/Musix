@@ -1,27 +1,31 @@
+const webpack = require("webpack");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const copyWebpackPlugin = require("copy-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const Dotenv = require("dotenv-webpack");
 const { merge: webpackMerge } = require("webpack-merge");
-const Path = require("path");
+const path = require("path");
 
 const modeConfig = (env) =>
   require(`./build-utils/webpack.${env.mode}.js`)(env);
-
 const loadPresets = require("./build-utils/loadPresets");
 
+const dotEnvPlugin = new Dotenv();
+const cleanPlugin = new CleanWebpackPlugin();
+const hotReloadPlugin = new webpack.HotModuleReplacementPlugin();
 const miniCssPlugin = new MiniCssExtractPlugin({
-  filename: "[name].[hash].css",
-  chunkFilename: "[id].[hash].css",
+  filename: "[name].[contenthash].css",
+  chunkFilename: "[id].[contenthash].css",
 });
-
 const htmlPlugin = new HtmlWebPackPlugin({
   template: "./public/index.html",
   filename: "./index.html",
 });
-
-const cleanPlugin = new CleanWebpackPlugin();
-
+const providePlugin = new webpack.ProvidePlugin({
+  Buffer: ["buffer", "Buffer"],
+  process: "process/browser",
+});
 const copyPlugin = new copyWebpackPlugin({
   patterns: [
     {
@@ -36,8 +40,35 @@ const copyPlugin = new copyWebpackPlugin({
 module.exports = (env) => {
   return webpackMerge(
     {
+      mode: env.mode,
       optimization: {
         nodeEnv: env.mode,
+        splitChunks: {
+          chunks: "all",
+        },
+      },
+      output: {
+        filename: "[name].js",
+        path: path.resolve(__dirname, "dist"),
+        assetModuleFilename: "images/[hash][ext][query]",
+      },
+      resolve: {
+        extensions: [".ts", ".js", ".json"],
+        fallback: {
+          util: require.resolve("util/"),
+          assert: require.resolve("assert/"),
+          os: require.resolve("os-browserify/browser"),
+          https: require.resolve("https-browserify"),
+          http: require.resolve("stream-http"),
+          crypto: require.resolve("crypto-browserify"),
+          stream: require.resolve("stream-browserify"),
+        },
+        alias: {
+          components: path.resolve(__dirname, "src/components/"),
+          containers: path.resolve(__dirname, "src/containers/"),
+          helpers: path.resolve(__dirname, "src/helpers/"),
+          assets: path.resolve(__dirname, "src/assets/"),
+        },
       },
       module: {
         rules: [
@@ -49,35 +80,39 @@ module.exports = (env) => {
             },
           },
           {
-            test: /\.(png|jpg|jp(e)g|gif|svg)$/i,
+            test: /\.svg$/,
             use: [
               {
-                loader: "url-loader",
+                loader: "svg-url-loader",
                 options: {
-                  limit: 8192,
+                  // Inline files smaller than 10 kB
+                  limit: 10 * 1024,
+                  noquotes: true,
                 },
               },
             ],
           },
           {
-            test: /\.(ttf|eot|svg|jpg|jp(e)g|png|woff(2)?)(\?[a-z0-9=&.]+)?$/,
-            use: [
-              {
-                loader: "file-loader?name=assets[name].[ext]",
-                options: {
-                  name(file) {
-                    if (env.mode === "development") {
-                      return "[path][name].[ext]";
-                    }
-                    return "[hash].[ext]";
-                  },
-                },
+            test: /\.(jpg|jp(e)g|png|gif)$/,
+            type: "asset",
+            parser: {
+              dataUrlCondition: {
+                maxSize: 8 * 1024, // 8kb
               },
-            ],
+            },
           },
         ],
       },
-      plugins: [htmlPlugin, miniCssPlugin, cleanPlugin, copyPlugin],
+
+      plugins: [
+        htmlPlugin,
+        miniCssPlugin,
+        cleanPlugin,
+        copyPlugin,
+        dotEnvPlugin,
+        providePlugin,
+        hotReloadPlugin,
+      ],
     },
     modeConfig({ mode: env.mode }),
     loadPresets({ mode: env.mode, presets: env.presets })
