@@ -68,6 +68,8 @@ module.exports = (env) => {
           containers: path.resolve(__dirname, "src/containers/"),
           helpers: path.resolve(__dirname, "src/helpers/"),
           assets: path.resolve(__dirname, "src/assets/"),
+          ducks: path.resolve(__dirname, "src/ducks/"),
+          services: path.resolve(__dirname, "src/services/"),
         },
       },
       module: {

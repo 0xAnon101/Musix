@@ -1,5 +1,9 @@
 // src/ducks/auth.js
-export const types = {
+
+import { userService } from "services/userService";
+
+/** Actions */
+export const actionTypes = {
   AUTO_LOGIN: "AUTH/AUTH_AUTO_LOGIN",
   LOGIN_REQUEST: "AUTH/LOGIN_REQUEST",
   LOGIN_SUCCESS: "AUTH/LOGIN_SUCCESS",
@@ -7,24 +11,27 @@ export const types = {
   LOGOUT: "AUTH/LOGOUT",
 };
 
+/** Initial state */
 export const initialState = {
   user: null,
   isLoading: false,
   error: null,
 };
 
-export default (state = initialState, action) => {
+/** Reducer */
+export const authReducer = (state = initialState, action) => {
   switch (action.type) {
-    case types.LOGIN_REQUEST:
+    case actionTypes.LOGIN_REQUEST:
       return { ...state, isLoading: true, error: null };
 
-    case types.LOGIN_SUCCESS:
+    case actionTypes.LOGIN_SUCCESS:
+      console.log(action, "=========");
       return { ...state, isLoading: false, user: action.user };
 
-    case types.LOGIN_FAILURE:
+    case actionTypes.LOGIN_FAILURE:
       return { ...state, isLoading: false, error: action.error };
 
-    case types.LOGOUT:
+    case actionTypes.LOGOUT:
       return { ...state, user: null };
 
     default:
@@ -32,11 +39,52 @@ export default (state = initialState, action) => {
   }
 };
 
+/** Action creators */
 export const actions = {
-  login: (email, password) => ({
-    type: actionTypes.LOGIN_REQUEST,
-    email,
-    password,
-  }),
+  login: (email) => login(email),
+  autoLogin: () => autoLogin(),
   logout: () => ({ type: actionTypes.LOGOUT }),
 };
+
+function login(email) {
+  return async (dispatch) => {
+    dispatch({
+      type: actionTypes.LOGIN_REQUEST,
+      email,
+    });
+
+    try {
+      const user = await userService.login(email);
+      dispatch({
+        type: actionTypes.LOGIN_SUCCESS,
+        user,
+      });
+    } catch (error) {
+      dispatch({
+        type: actionTypes.LOGIN_FAILURE,
+        error,
+      });
+    }
+  };
+}
+
+function autoLogin() {
+  return async (dispatch) => {
+    dispatch({
+      type: actionTypes.LOGIN_REQUEST,
+    });
+
+    try {
+      const user = await userService.autoLogin();
+      dispatch({
+        type: actionTypes.LOGIN_SUCCESS,
+        user,
+      });
+    } catch (error) {
+      dispatch({
+        type: actionTypes.LOGIN_FAILURE,
+        error,
+      });
+    }
+  };
+}

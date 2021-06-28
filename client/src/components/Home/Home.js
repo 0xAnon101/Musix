@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Web3 from "web3";
 import { motion } from "framer-motion";
 import { magicKeySetUp } from "helpers/magicSetup";
+import { actions as authActions } from "ducks/auth";
 import MusixSVG from "assets/1.svg";
 import BandPNG from "assets/band.png";
 
@@ -72,8 +73,8 @@ const FormWrapper = styled.div`
 `;
 
 const Home = (props) => {
-  const [user, setUser] = useState({});
-  const [magic, setMagic] = useState({});
+  // const [user, setUser] = useState({});
+  // const [magic, setMagic] = useState({});
   const [email, setEmail] = useState("");
 
   const boxVariants = {
@@ -81,14 +82,15 @@ const Home = (props) => {
   };
 
   useEffect(async () => {
-    const { magic } = await magicKeySetUp();
-    setUser({ loading: true });
-    setMagic(magic);
-    const isUserLoggedIn = await magic.user.isLoggedIn();
-    if (isUserLoggedIn) {
-      const userMetaData = await magic.user.getMetadata();
-      userMetaData ? setUser(userMetaData) : setUser({ user: null });
-    }
+    props.autoLogin();
+    // const { magic } = await magicKeySetUp();
+    // setUser({ loading: true });
+    // setMagic(magic);
+    // const isUserLoggedIn = await magic.user.isLoggedIn();
+    // if (isUserLoggedIn) {
+    //   const userMetaData = await magic.user.getMetadata();
+    //   userMetaData ? setUser(userMetaData) : setUser({ user: null });
+    // }
   }, []);
 
   const setInputs = ({ target }) => {
@@ -98,13 +100,14 @@ const Home = (props) => {
   const sendMagicLink = async (e) => {
     e.preventDefault();
     const emailInput = email;
-    await magic.auth.loginWithMagicLink({ email: emailInput });
-    const web3 = new Web3(magic.rpcProvider);
-    const address = await web3.eth.getAccounts();
-    console.log(user);
-    setUser({ ...user, address, email });
-    console.log(user, props);
-    props.history.push("/playlists");
+    props.login(emailInput);
+
+    // await magic.auth.loginWithMagicLink({ email: emailInput });
+    // const web3 = new Web3(magic.rpcProvider);
+    // const address = await web3.eth.getAccounts();
+    // console.log(user);
+    // setUser({ ...user, address, email });
+    // props.history.push("/playlists");
   };
 
   return (
@@ -153,6 +156,10 @@ const Home = (props) => {
 };
 
 const mapDispatchToProps = (dispatch) => {
-  return {};
+  return {
+    login: (email) => dispatch(authActions.login(email)),
+    autoLogin: () => dispatch(authActions.autoLogin()),
+  };
 };
+
 export default connect(null, mapDispatchToProps)(Home);
