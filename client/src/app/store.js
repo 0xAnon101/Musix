@@ -2,6 +2,6 @@ import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import { authReducer } from "ducks/auth";
 
 export default configureStore({
-  reducer: { authReducer },
+  reducer: authReducer,
   middleware: [...getDefaultMiddleware()],
 });

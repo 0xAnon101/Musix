@@ -25,7 +25,6 @@ export const authReducer = (state = initialState, action) => {
       return { ...state, isLoading: true, error: null };
 
     case actionTypes.LOGIN_SUCCESS:
-      console.log(action, "=========");
       return { ...state, isLoading: false, user: action.user };
 
     case actionTypes.LOGIN_FAILURE:

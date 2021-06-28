@@ -73,41 +73,27 @@ const FormWrapper = styled.div`
 `;
 
 const Home = (props) => {
-  // const [user, setUser] = useState({});
-  // const [magic, setMagic] = useState({});
   const [email, setEmail] = useState("");
 
   const boxVariants = {
     hover: { scale: 1.05 },
   };
 
-  useEffect(async () => {
-    props.autoLogin();
-    // const { magic } = await magicKeySetUp();
-    // setUser({ loading: true });
-    // setMagic(magic);
-    // const isUserLoggedIn = await magic.user.isLoggedIn();
-    // if (isUserLoggedIn) {
-    //   const userMetaData = await magic.user.getMetadata();
-    //   userMetaData ? setUser(userMetaData) : setUser({ user: null });
-    // }
-  }, []);
+  useEffect(() => {
+    if (!props.user) props.autoLogin();
+    else {
+      props.history.push("/playLists");
+    }
+  }, [props.user]);
 
   const setInputs = ({ target }) => {
     setEmail(target.value);
   };
 
-  const sendMagicLink = async (e) => {
+  const sendMagicLink = (e) => {
     e.preventDefault();
     const emailInput = email;
     props.login(emailInput);
-
-    // await magic.auth.loginWithMagicLink({ email: emailInput });
-    // const web3 = new Web3(magic.rpcProvider);
-    // const address = await web3.eth.getAccounts();
-    // console.log(user);
-    // setUser({ ...user, address, email });
-    // props.history.push("/playlists");
   };
 
   return (
@@ -162,4 +148,10 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(null, mapDispatchToProps)(Home);
+const mapStateToProps = (state) => {
+  return {
+    user: state.user,
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Home);
